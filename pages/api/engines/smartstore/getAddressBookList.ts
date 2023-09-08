@@ -17,7 +17,7 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Dat
     // console.log('-------------------------')
     // console.log(req.body)
     // console.log('-------------------------')
-    // const params = req.body
+    const params = req.body
     // const sendToken = await getTokenInfo(params.receive)
     // console.log(sendToken)
     // const addressList = await getAddressList(sendToken)
