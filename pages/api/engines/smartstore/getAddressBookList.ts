@@ -14,12 +14,13 @@ type Data = {
 export default async function POST(req: NextApiRequest, res: NextApiResponse<Data>) {
   await openGate(req, res)
   if (req.method === 'POST') {
-    res.status(200).json({ name: req.body })
     // console.log('-------------------------')
     // console.log(req.body)
     // console.log('-------------------------')
     const params = req.body
     const sendToken = await getTokenInfo(params.receive)
+
+    res.status(200).json({ name: req.body })
     // console.log(sendToken)
     // const addressList = await getAddressList(sendToken)
     //
