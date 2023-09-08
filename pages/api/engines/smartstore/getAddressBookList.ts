@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import TpService from '@/services/tp.service'
+import { openGate } from '@/lib/cors'
 
 type Data = {
   result: {
@@ -10,6 +11,7 @@ type Data = {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  await openGate(req, res)
   console.log('-------------------------')
   console.log(req.body)
   console.log('-------------------------')

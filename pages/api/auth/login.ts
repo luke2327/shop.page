@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import AuthService from '@/services/auth.service'
+import { openGate } from '@/lib/cors'
 
 type Data = {
   result: {
@@ -11,6 +12,7 @@ type Data = {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  await openGate(req, res)
   const authService = new AuthService()
 
   const [userInfo] = await authService.login(req.body)
