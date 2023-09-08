@@ -1,9 +1,7 @@
-'use strict'
-
 import rpm from 'request-promise'
 
 export default class Request {
-  sendUrlJson(method: 'GET' | 'POST', url: string, vdata: any, headers: any, bodyType: 'body' | 'form') {
+  sendUrlJson(method: 'GET' | 'POST' | 'PUT', url: string, vdata: any, headers: any, bodyType: 'body' | 'form') {
     const options: any = {
       method: method,
       uri: url,
@@ -23,8 +21,8 @@ export default class Request {
     return rpm(options)
   }
 
-  sendUrl(method, url, vdata, headers) {
-    const options = {
+  sendUrl(method: 'GET' | 'POST' | 'PUT', url: string, vdata: any, headers: any) {
+    const options: any = {
       method: method,
       uri: url,
       headers: headers,
@@ -43,14 +41,14 @@ export default class Request {
     return rpm(options)
   }
 
-  sendUrlFiles(url, vdata, headers) {
-    const options = {
-      method: 'POST',
-      uri: url,
-      headers: headers,
-      formData: vdata,
-    }
-
-    return rpm(options)
-  }
+  // sendUrlFiles(url, vdata, headers) {
+  //   const options = {
+  //     method: 'POST',
+  //     uri: url,
+  //     headers: headers,
+  //     formData: vdata,
+  //   }
+  //
+  //   return rpm(options)
+  // }
 }

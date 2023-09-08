@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt'
 import Request from '@/services/request.service'
-import momentTZ from 'moment-timezone'
 
 export type GetTokenInfoParams = {
   client_secret_key: string
@@ -66,7 +65,7 @@ export default class TpService {
   }
 
   async productRegist(params: any, list: any) {
-    const format = this.createProductFormat(list)
+    // const format = this.createProductFormat(list)
   }
 
   async productSearchList(params: any) {
@@ -158,9 +157,9 @@ export default class TpService {
   }
 
   async callProducts(body: any, token: string, mode: 'regist' | 'update' | 'partialEdit', shopProdCode = '') {
-    let method = 'POST'
-    let endpoint
-    let version
+    let method: 'PUT' | 'POST' | 'GET' = 'POST'
+    let endpoint = ''
+    let version = ''
 
     if (mode === 'regist') {
       method = 'POST'
@@ -180,191 +179,5 @@ export default class TpService {
     const payload = [method, endpoint, body, headers, 'body', version] as const
 
     return await this.sendUrlSmartstore(...payload)
-  }
-
-  // 상품 전송 데이터 가공
-  async createProductFormat(params) {
-    const images = []
-
-    try {
-      // for (let i = 1; i < 8; i++) {
-      //   if (params[`prod_img${i}`]) {
-      //     images.push(params[`prod_img${i}`])
-      //   }
-      // }
-
-      // // 등록할 이미지 스마트스토어에 업로드
-      // const uploadedImages = await this.callProductImagesUpload(params.add_img_list, smartstoreToken)
-      // // 메인 이미지
-      // const representativeImage = { url: uploadedImages[0].url }
-      // // 서브 이미지(복수)
-      // const optionalImages = uploadedImages.slice(1)
-      //
-      // const [notice, noticeType] = this.getProductSummaryInfo(params)
-
-      const body = {
-        originProduct: {
-          statusType: 'SALE',
-          saleType: 'NEW',
-          saleStartDate: `${params.sale_start_date || momentTZ().tz('Asia/Seoul').format('YYYY-MM-DD')}T00:00:00Z`,
-          saleEndDate: `${params.sale_end_date || '2099-12-31'}T23:59:59Z`,
-          name: params.prod_name,
-          images: {
-            representativeImage: params.images.representativeImage,
-            optionalImages: params.imges.optionalImages,
-          },
-          detailContent: params.content,
-          salePrice: params.sale_price,
-          stockQuantity: params.prod_cnt,
-          deliveryInfo: {
-            deliveryType: 'DELIVERY',
-            deliveryAttributeType: params.delivery.type,
-            deliveryCompany: params.delivery.deliv_code,
-            deliveryBundleGroupId: Number(params.shop_etc.group_place.code),
-            deliveryFee: { deliveryFeeType: Number(params.delivery.price) === 0 ? 'FREE' : 'PAID' },
-            claimDeliveryInfo: {
-              returnDeliveryCompanyPriorityType: params.shop_etc.redeliv_priority_type,
-              returnDeliveryFee: Number(params.delivery.return_price),
-              exchangeDeliveryFee: Number(params.shop_etc.exchange_delivery_fee),
-            },
-          },
-          detailAttribute: {
-            naverShoppingSearchInfo: {
-              manufacturerName: params.manufacturer,
-              brandName: params.brand,
-              modelName: params.model ? params.model.name : undefined,
-            },
-            sellerCodeInfo: {
-              sellerManagementCode: params.manage_code,
-            },
-            afterServiceInfo: {
-              afterServiceTelephoneNumber: params.shop_etc.as_tel,
-              afterServiceGuideContent: params.shop_etc.as_guide,
-            },
-            originAreaInfo: {
-              originAreaCode: params.origin,
-              importer: params.brand,
-            },
-            minorPurchasable: true,
-            // 상품정보제공고시
-            productInfoProvidedNotice: {
-              productInfoProvidedNoticeType: noticeType,
-              ...notice,
-            },
-          },
-        },
-        smartstoreChannelProduct: {
-          channelProductName: params.prod_name, // 스마트스토어 전용 상품명
-          naverShoppingRegistration: true,
-          channelProductDisplayStatusType: 'ON',
-        },
-      }
-
-      // 카테고리 등록시에만 적용
-      if (mode !== 'update') {
-        body.originProduct.leafCategoryId = params.category_id
-      }
-
-      // 배송비 무료가 아닌경우 배송비 대입
-      if (body.originProduct.deliveryInfo.deliveryFee.deliveryFeeType === 'PAID') {
-        body.originProduct.deliveryInfo.deliveryFee.baseFee = `${params.delivery.price}`
-        body.originProduct.deliveryInfo.deliveryFee.deliveryFeePayType = 'PREPAID'
-      }
-
-      // KC 인증정보
-      if (params.certification_list && params.certification_list.length) {
-        body.originProduct.detailAttribute.productCertificationInfos = []
-
-        for (const [idx, cert] of Object.entries(params.certification_list)) {
-          if (cert.certification) {
-            const insertCert = {
-              certificationInfoId: Number(cert.certification),
-              certificationKindType: 'KC_CERTIFICATION',
-              certificationMark: false,
-            }
-            if (cert.certificationName) {
-              insertCert.name = cert.certificationName
-            }
-            if (cert.certificationNumber) {
-              insertCert.certificationNumber = cert.certificationNumber
-            }
-            if (cert.certificationCompanyName) {
-              insertCert.companyName = cert.certificationCompanyName
-            }
-
-            body.originProduct.detailAttribute.productCertificationInfos.push(insertCert)
-          }
-
-          if (cert.kcCertifiedProductExclusionYn) {
-            body.originProduct.detailAttribute.certificationTargetExcludeContent = {
-              kcCertifiedProductExclusionYn: cert.kcCertifiedProductExclusionYn,
-            }
-
-            if (cert.kcExemptionType) {
-              body.originProduct.detailAttribute.certificationTargetExcludeContent.kcExemptionType = cert.kcExemptionType
-
-              if (
-                ['OVERSEAS', 'PARALLEL_IMPORT'].includes(cert.kcExemptionType) &&
-                cert.certification &&
-                ![1042, 1041, 1040].includes(cert.certification)
-              ) {
-                body.originProduct.detailAttribute.productCertificationInfos[Number(idx)].certificationKindType =
-                  cert.kcExemptionType
-              }
-            }
-
-            // 어린이 제품일 경우에는 무조건
-            if (cert.certification && [1042, 1041, 1040].includes(cert.certification)) {
-              body.originProduct.detailAttribute.productCertificationInfos[Number(idx)].certificationKindType =
-                'CHILD_CERTIFICATION'
-              body.originProduct.detailAttribute.certificationTargetExcludeContent = { kcCertifiedProductExclusionYn: 'TRUE' }
-            }
-          }
-        }
-      } else {
-        // KC 인증관리대상 아님
-        body.originProduct.detailAttribute.certificationTargetExcludeContent = { kcCertifiedProductExclusionYn: 'TRUE' }
-      }
-
-      // 옵션정보
-      if (params.option) {
-        body.originProduct.detailAttribute.optionInfo = {
-          optionCombinationGroupNames: (() => {
-            const groupNames = {}
-
-            Object.entries(params.option.names).forEach(([idx, optionName]) => {
-              if (optionName) {
-                groupNames[`optionGroupName${Number(idx) + 1}`] = optionName
-              }
-            })
-
-            return groupNames
-          })(),
-          optionCombinations: params.option.items.map((opt) => ({
-            optionName1: opt.value1,
-            optionName2: opt.value2 ? opt.value2 : undefined,
-            optionName3: opt.value3 ? opt.value3 : undefined,
-            price: Number(opt.add_price), // 가격이 0인 옵션이 1개이상 있어야함
-            stockQuantity: Number(opt.cnt),
-            sellerManagerCode: opt.code,
-            usable: opt.usable === 'Y',
-          })),
-        }
-      }
-
-      // 직접입력인 경우 한정 content(원산지 직접입력 정보 추가)
-      if (body.originProduct.detailAttribute.originAreaInfo.originAreaCode === '04') {
-        body.originProduct.detailAttribute.originAreaInfo.content = params.shop_etc.sku_origin_detail
-      } else {
-        body.originProduct.detailAttribute.originAreaInfo.originAreaCode = '04'
-        body.originProduct.detailAttribute.originAreaInfo.content = '기타'
-      }
-
-      return body
-    } catch (e) {
-      console.log('상품등록 에러', e)
-
-      throw e
-    }
   }
 }
