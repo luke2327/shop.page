@@ -1,8 +1,8 @@
 import Head from 'next/head'
-import Image from 'next/image'
-import styles from '@/styles/Home.module.scss'
+import styles from '@/styles/Home.module.css'
 import { usersService } from '@/services/user.service'
 import { GetServerSideProps } from 'next'
+import LoginForm from '@/components/auth/LoginForm'
 
 const Home = ({ data }: { data: any[] }) => {
   return (
@@ -13,28 +13,9 @@ const Home = ({ data }: { data: any[] }) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+      <LoginForm />
 
-        <p className={styles.description}>
-          Get started by editing <code className={styles.code}>pages/index.tsx</code>
-        </p>
-
-        <div className={styles.grid}>
-          {data?.map((item, index) => {
-            return (
-              <a href="https://nextjs.org/docs" className={styles.card} key={index}>
-                <h2>{item.name}</h2>
-                <p>{item.email}</p>
-              </a>
-            )
-          })}
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
+      {/* <footer className={styles.footer}>
         <a
           href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
           target="_blank"
@@ -45,7 +26,7 @@ const Home = ({ data }: { data: any[] }) => {
             <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} layout="fixed" />
           </span>
         </a>
-      </footer>
+      </footer> */}
     </div>
   )
 }
