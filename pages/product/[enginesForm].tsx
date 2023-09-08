@@ -1,14 +1,12 @@
 import Head from 'next/head'
 import styles from '@/styles/Home.module.css'
-import { usersService } from '@/services/user.service'
-import { GetServerSideProps } from 'next'
 import SmartstoreForm from '@/components/engines/SmartstoreForm'
 import { useRecoilState } from 'recoil'
 import { common } from '@/lib/store/common'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
-const Home = ({ data }: { data: any[] }) => {
+const Home = () => {
   const router = useRouter()
   const [commonState, setCommonState] = useRecoilState(common)
 
@@ -31,13 +29,3 @@ const Home = ({ data }: { data: any[] }) => {
 }
 
 export default Home
-
-export const getServerSideProps: GetServerSideProps = async () => {
-  const { data } = await usersService.getUser()
-
-  return {
-    props: {
-      data,
-    },
-  }
-}
