@@ -76,7 +76,13 @@ const LoginForm: React.FC = () => {
     const receive = info.shopInfo.filter((x: any) => x.type === 'receive')[0]
 
     const url = 'https://shop-page-beta.vercel.app/api/engines/smartstore/getAddressBookList'
-    const response = (await axios.post(url, { receive: receive }).then(({ data }) => data.result)) as {
+    const response = (await axios(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: { receive: receive },
+    }).then(({ data }) => data.result)) as {
       list: {
         addressBooks: AddressBookList
       }
