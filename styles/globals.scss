@@ -12,10 +12,46 @@
 
 html,
 body {
-  padding: 0;
-  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  padding: 0 !important;
+  margin: 0 !important;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
     Helvetica Neue, sans-serif;
+}
+
+body > div#__next,
+body > div#__next > div {
+  width: 100%;
+  height: 100%;
+}
+
+body > div#__next > div > main {
+  width: 100%;
+  height: calc(100% - 80px);
+}
+
+:where(.css-dev-only-do-not-override-nnuwmp).ant-btn-primary:not(:disabled):not(.ant-btn-disabled) {
+  color: #fff;
+  background-color: #0958d9;
+}
+
+.ant-upload {
+  padding: 16px
+}
+
+.ant-upload > span {
+  padding: 0 !important
+}
+
+.ant-table-tbody > tr > td {
+  height: 5px;
+  padding: 4px !important;
+}
+
+.ant-table-thead > tr > th {
+  height: 5px;
+  padding: 4px !important;
 }
 
 a {

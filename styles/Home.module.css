@@ -1,0 +1,49 @@
+#__next {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  padding: 0 2rem;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.loginForm {
+  padding: 40px !important;
+  padding-top: 80px !important;
+  padding-bottom: 60px !important;
+  max-width: 600px;
+  width: 50%;
+  border: 1px solid #f6f6f6;
+  box-shadow: 0 2px 4px rgba(15,34,58,.12);
+  border-radius: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+}
+
+.ant-breadcrumb-link {
+  color: inherit !important;
+}
+
+.main {
+  min-height: 100vh;
+  min-width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
