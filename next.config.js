@@ -3,8 +3,6 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
-const { router } = require('./routers/router');
-
 module.exports = withBundleAnalyzer({
   eslint: {
     dirs: ['.'],
@@ -24,9 +22,6 @@ module.exports = withBundleAnalyzer({
   basePath: '',
   reactStrictMode: true,
   swcMinify: true,
-  async rewrites() {
-    return router;
-  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.svg$/,
