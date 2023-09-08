@@ -12,13 +12,15 @@ type Data = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   await openGate(req, res)
-  const tpService = new TpService()
-  const response = await tpService.getChannelInfo(req.body)
+  if (req.method === 'POST') {
+    const tpService = new TpService()
+    const response = await tpService.getChannelInfo(req.body)
 
-  res.status(200).json({
-    result: {
-      data: response,
-      message: 'SUCCESS',
-    },
-  })
+    res.status(200).json({
+      result: {
+        data: response,
+        message: 'SUCCESS',
+      },
+    })
+  }
 }

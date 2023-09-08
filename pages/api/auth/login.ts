@@ -13,20 +13,22 @@ type Data = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   await openGate(req, res)
-  const authService = new AuthService()
+  if (req.method === 'POST') {
+    const authService = new AuthService()
 
-  const [userInfo] = await authService.login(req.body)
-  const shopInfo = await authService.getShopInfo(userInfo)
+    const [userInfo] = await authService.login(req.body)
+    const shopInfo = await authService.getShopInfo(userInfo)
 
-  console.log('----------------')
-  console.log(shopInfo)
-  console.log('----------------')
+    console.log('----------------')
+    console.log(shopInfo)
+    console.log('----------------')
 
-  res.status(200).json({
-    result: {
-      userInfo: userInfo,
-      shopInfo: shopInfo,
-      message: 'SUCCESS',
-    },
-  })
+    res.status(200).json({
+      result: {
+        userInfo: userInfo,
+        shopInfo: shopInfo,
+        message: 'SUCCESS',
+      },
+    })
+  }
 }

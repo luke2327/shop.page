@@ -12,19 +12,21 @@ type Data = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   await openGate(req, res)
-  console.log('-------------------------')
-  console.log(req.body)
-  console.log('-------------------------')
-  const tpService = new TpService()
-  const params = req.body
-  const sendToken = await tpService.getTokenInfo(params.receive)
-  console.log(sendToken)
-  const addressList = await tpService.getAddressList(sendToken)
+  if (req.method === 'POST') {
+    console.log('-------------------------')
+    console.log(req.body)
+    console.log('-------------------------')
+    const tpService = new TpService()
+    const params = req.body
+    const sendToken = await tpService.getTokenInfo(params.receive)
+    console.log(sendToken)
+    const addressList = await tpService.getAddressList(sendToken)
 
-  res.status(200).json({
-    result: {
-      list: addressList,
-      message: 'SUCCESS',
-    },
-  })
+    res.status(200).json({
+      result: {
+        list: addressList,
+        message: 'SUCCESS',
+      },
+    })
+  }
 }
