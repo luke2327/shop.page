@@ -75,9 +75,7 @@ const ProductModal: React.FC<IProductModalProps> = (params) => {
   }
 
   const onOk = async () => {
-    const url = 'http://localhost:4001/api/engines/smartstore/migrate'
-
-    await axios.post(url, payload)
+    await axios.post('https://shop-page-beta.vercel.app/api/engines/smartstore/migrate', payload)
   }
 
   return (

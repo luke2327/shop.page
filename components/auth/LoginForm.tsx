@@ -44,7 +44,10 @@ const LoginForm: React.FC = () => {
 
   const getInfo = async (values: GetTokenInfoParams & { shopId: string }) => {
     return await axios
-      .post<{ result: { userInfo: any; shopInfo: any; message: 'SUCCESS' } }>('http://localhost:4001/api/auth/login', values)
+      .post<{ result: { userInfo: any; shopInfo: any; message: 'SUCCESS' } }>(
+        'https://shop-page-beta.vercel.app/api/auth/login',
+        values,
+      )
       .then(({ data }) => {
         if (data.result.message === 'SUCCESS') {
           setCommonState({
@@ -72,14 +75,14 @@ const LoginForm: React.FC = () => {
     const send = info.shopInfo.filter((x: any) => x.type === 'send')[0]
     const receive = info.shopInfo.filter((x: any) => x.type === 'receive')[0]
 
-    const url = 'http://localhost:4001/api/engines/smartstore/getAddressBookList'
+    const url = 'https://shop-page-beta.vercel.app/api/engines/smartstore/getAddressBookList'
     const response = (await axios.post(url, { receive: receive }).then(({ data }) => data.result)) as {
       list: {
         addressBooks: AddressBookList
       }
     }
 
-    const urlGroup = 'http://localhost:4001/api/engines/smartstore/getGroupAddressList'
+    const urlGroup = 'https://shop-page-beta.vercel.app/api/engines/smartstore/getGroupAddressList'
     const responseGroup = (await axios.post(urlGroup, { receive: receive }).then(({ data }) => data.result)) as {
       list: {
         contents: AddressGroupList
