@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import TpService from '@/services/tp.service'
+import { getAddressList, getTokenInfo } from '@/services/tp.service'
 import { openGate } from '@/lib/cors'
 
 type Data = {
@@ -16,11 +16,10 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Dat
     console.log('-------------------------')
     console.log(req.body)
     console.log('-------------------------')
-    const tpService = new TpService()
     const params = req.body
-    const sendToken = await tpService.getTokenInfo(params.receive)
+    const sendToken = await getTokenInfo(params.receive)
     console.log(sendToken)
-    const addressList = await tpService.getAddressList(sendToken)
+    const addressList = await getAddressList(sendToken)
 
     res.status(200).json({
       result: {

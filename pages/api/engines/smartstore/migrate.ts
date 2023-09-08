@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import TpService from '@/services/tp.service'
+import { callProducts, getTokenInfo, productSearchList } from '@/services/tp.service'
 import { openGate } from '@/lib/cors'
 
 type Data = {
@@ -13,12 +13,11 @@ type Data = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   await openGate(req, res)
   if (req.method === 'POST') {
-    const tpService = new TpService()
     const params = req.body
 
-    const { list } = await tpService.productSearchList(params)
+    const { list } = await productSearchList(params)
 
-    const receiveToken = await tpService.getTokenInfo(params.receive)
+    const receiveToken = await getTokenInfo(params.receive)
     const resultData = []
 
     for (const data of list) {
@@ -33,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       data.originProduct.deliveryInfo.claimDeliveryInfo.returnAddressId = params.returnAddress.addressBookNo
       data.originProduct.deliveryInfo.deliveryBundleGroupId = params.groupAddress.id
 
-      const response = await tpService.callProducts(data, receiveToken, 'regist')
+      const response = await callProducts(data, receiveToken, 'regist')
 
       console.log('----------------')
       console.log(response)
