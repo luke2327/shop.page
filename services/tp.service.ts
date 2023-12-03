@@ -177,3 +177,49 @@ export async function callProducts(body: any, token: string, mode: 'regist' | 'u
 
   return await sendUrlSmartstore(...payload)
 }
+
+export async function productEdit(params: any, token: string) {
+  const headers = { Authorization: token }
+  const endpoint = `products/channel-products/${params.product_code}`
+
+  const payload = ['PUT', endpoint, params.body, headers, 'form', 'v2'] as const
+  const re = await sendUrlSmartstore(...payload)
+
+  return re
+}
+
+export async function productSearch(params: any, token: string) {
+  const result: any = {}
+
+  const headers = { Authorization: token }
+  const data = {
+    searchKeywordType: 'CHANNEL_PRODUCT_NO',
+    channelProductNos: params.shop_prod_code,
+    page: 1,
+    size: 1000,
+  }
+
+  result.list = []
+
+  const payload = ['POST', 'products/search', data, headers] as const
+  const re = await sendUrlSmartstore(...payload)
+
+  result.total += re.totalElements
+
+  for (const content of re.contents) {
+    const [row] = content.channelProducts
+
+    result.list.push({
+      shop_prod_code: row.channelProductNo,
+      shop_prod_code_sub: row.originProductNo,
+      manage_code: row.sellerManagementCode,
+      prod_name: row.name,
+      shop_status: row.statusType,
+      sale_end_date: row.saleEndDate,
+    })
+  }
+
+  result.result = 'SUCCESS'
+
+  return result
+}
