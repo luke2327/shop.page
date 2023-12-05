@@ -273,8 +273,19 @@ const App: React.FC = () => {
   }
 
   const handleOkTag = () => {
-    const newData = data.map((x) => ({ ...x, productTag: batchEditTag }))
-    const newSendData = data.map((x) => ({ ...x, productTag: batchEditTag }))
+    const newData = data.map((x) => {
+      if (sendData.length) {
+        const find = sendData.find((p) => p.productNo === x.productNo)
+        if (find) {
+          return { ...x, productTag: batchEditTag }
+        } else {
+          return x
+        }
+      }
+
+      return { ...x, productTag: batchEditTag }
+    })
+    const newSendData = sendData.map((x) => ({ ...x, productTag: batchEditTag }))
     setData(newData)
     setSendData(newSendData)
     setIsModalTagOpen(false)
@@ -411,7 +422,7 @@ const App: React.FC = () => {
       <Modal title="일괄수정 태그" open={isModalTagOpen} onOk={handleOkTag} onCancel={handleCancelTag}>
         <Input onChange={(e) => setBatchEditTag(e.target.value)} placeholder="블랙,레드" />
         <p className="pt-1 text-stone-500">- 쉼표로 구분해주세요</p>
-        <p className="pt-1 text-stone-500">- {data.length}개 상품의 수정을 진행합니다</p>
+        <p className="pt-1 text-stone-500">- {sendData.length ? sendData.length : data.length}개 상품의 수정을 진행합니다</p>
       </Modal>
       <Modal title="일괄수정 쿠폰" open={isModalCouponOpen} onOk={handleOkCoupon} onCancel={handleCancelCoupon}>
         <p>E쿠폰 유효기간(구매일로부터 00일)</p>
@@ -452,6 +463,7 @@ const App: React.FC = () => {
           value={batchEditCoupon.restrictCart}
           onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, restrictCart: e.target.value })}
         />
+        <p className="pt-2 text-stone-500">- {data.length}개 상품의 수정을 진행합니다</p>
       </Modal>
     </Form>
   )
