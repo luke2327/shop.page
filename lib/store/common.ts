@@ -1,3 +1,4 @@
+import { ShopInfo, UserInfo } from 'interface/auth.interface'
 import { atom } from 'recoil'
 
 export const common = atom<{
@@ -14,8 +15,8 @@ export const common = atom<{
 })
 
 export const solution = atom<{
-  userInfo: any
-  shopInfo: any
+  userInfo: UserInfo | NonNullable<unknown>
+  shopInfo: ShopInfo
   send: any
   receive: any
   shippingAddressList: any
@@ -28,7 +29,16 @@ export const solution = atom<{
   key: 'solutionState',
   default: {
     userInfo: {},
-    shopInfo: {},
+    shopInfo: {
+      client_key: '',
+      client_secret_key: '',
+      shop_disp_id: '',
+      shop_id: '',
+      shop_name: 'smartstore',
+      sol_shop_no: 0,
+      type: 'update',
+      user_no: 0,
+    },
     send: {},
     receive: {},
     shippingAddressList: [],
