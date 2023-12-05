@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import AuthService from '@/services/auth.service'
 import { openGate } from '@/lib/cors'
+import { ShopInfo, UserInfo } from 'interface/auth.interface'
 
 type Data = {
   result: {
@@ -16,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   if (req.method === 'POST') {
     const authService = new AuthService()
 
-    const [userInfo] = await authService.login(req.body)
-    const shopInfo = await authService.getShopInfo(userInfo)
+    const [userInfo] = (await authService.login(req.body)) as UserInfo[]
+    const [shopInfo] = (await authService.getShopInfo(userInfo)) as ShopInfo[]
 
     console.log('----------------')
     console.log(shopInfo)

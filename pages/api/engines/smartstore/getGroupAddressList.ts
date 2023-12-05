@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getGroupAddressList, getTokenInfo } from '@/services/tp.service'
 import { openGate } from '@/lib/cors'
+import { ShopInfo } from 'interface/auth.interface'
 
 type Data = {
   result: {
@@ -13,9 +14,8 @@ type Data = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   await openGate(req, res)
   if (req.method === 'POST') {
-    const params = req.body
-    console.log(params)
-    const sendToken = await getTokenInfo(params.receive)
+    const params = req.body as { shopInfo: ShopInfo }
+    const sendToken = await getTokenInfo(params.shopInfo)
     const addressList = await getGroupAddressList(sendToken)
 
     console.log(addressList)
