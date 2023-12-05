@@ -366,8 +366,10 @@ const App: React.FC = () => {
         }}
         pagination={{
           onChange: cancel,
+          pageSizeOptions: [10, 20, 50, 100, 250, 500],
         }}
-        scroll={{ x: 1300 }}
+        scroll={{ x: 1300, y: 600 }}
+        sticky
       />
       <Modal title="상품 전송" open={isModalSendOpen} onOk={handleOkSend} onCancel={() => setIsModalSendOpen(false)}>
         <p className="text-stone-500">{sendData.length} 상품의 전송을 진행합니다</p>
