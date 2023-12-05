@@ -17,6 +17,11 @@ module.exports = withBundleAnalyzer({
       },
     ],
   },
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   poweredByHeader: false,
   basePath: '',
