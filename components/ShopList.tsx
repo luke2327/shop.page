@@ -40,6 +40,7 @@ const ShopList: React.FC = () => {
     <div>
       <p className="text-lg">상품번호</p>
       <p className="text-zinc-500">불러올 상품번호를 입력해주세요. 엔터로 구분합니다.</p>
+      <p className="text-zinc-500">최대 500개 단위로 입력할 수 있습니다.</p>
       <Input.TextArea
         onChange={(e) => setProdCode(e.target.value)}
         className={'!h-[400] !flex !items-start !justify-start'}
