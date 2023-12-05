@@ -52,6 +52,7 @@ const FileUpload: React.FC = () => {
                   key: x.product_code,
                 })),
               })
+              console.log(results.data)
               setCommonState({
                 ...commonState,
                 step: 3,

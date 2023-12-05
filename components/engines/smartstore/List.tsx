@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 import { Divider, Table, Button } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import Image from 'next/image'
-import ProductModal from '@/components/engines/Modal'
 import { useWindowSize } from '@uidotdev/usehooks'
 
 export interface SmartstoreCsvDataMap {
@@ -152,6 +151,7 @@ type IListProps = {
 
 const List: React.FC<IListProps> = (params) => {
   const [modal, setModal] = useState(false)
+  const [uploadModal, setUploadModal] = useState(false)
   const data = useMemo(() => params.data, [params.data])
   const [selectedData, setSelectedData] = useState<SmartstoreCsvDataMap[]>([])
   const size = useWindowSize() as { width: number; height: number }
@@ -167,7 +167,10 @@ const List: React.FC<IListProps> = (params) => {
 
   return (
     <div>
-      <div className={'flex justify-end'}>
+      <div className={'flex justify-end gap-2'}>
+        <Button disabled={!selectedData.length} type={'primary'} onClick={() => setUploadModal(true)}>
+          Upload
+        </Button>
         <Button disabled={!selectedData.length} type={'primary'} onClick={() => setModal(true)}>
           Migrate
         </Button>
@@ -179,10 +182,13 @@ const List: React.FC<IListProps> = (params) => {
         }}
         columns={columns}
         dataSource={data}
-        pagination={{ pageSize: 50 }}
+        pagination={{ pageSize: 1000 }}
         scroll={{ y: size.height - 240, x: 1640 }}
       />
-      {modal && <ProductModal handleModal={(x) => setModal(x)} modalOpen={modal} selectedRows={selectedData} />}
+      {/* {modal && <ProductModal handleModal={(x) => setModal(x)} modalOpen={modal} selectedRows={selectedData} />} */}
+      {/* {uploadModal && (
+        <ProductUploadModal handleModal={(x) => setUploadModal(x)} modalOpen={uploadModal} selectedRows={selectedData} />
+      )} */}
     </div>
   )
 }

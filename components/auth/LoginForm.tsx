@@ -6,36 +6,12 @@ import { useRecoilState } from 'recoil'
 import { common, solution } from '@/lib/store/common'
 import { useRouter } from 'next/router'
 import styles from '@/styles/Home.module.css'
+import { LoginFieldType, LoginResult } from 'interface/auth.interface'
+import { AddressBookList, AddressGroupList } from 'interface/smartstore.interface'
 
 const onFinishFailed = (errorInfo: any) => {
   console.log('Failed:', errorInfo)
 }
-
-type FieldType = {
-  email?: string
-  shopId?: string
-  password?: string
-  remember?: string
-}
-type AddressBookList = {
-  address: string
-  addressBookNo: number
-  addressType: string
-  baseAddress: string
-  detailAddress: string
-  name: string
-  phoneNumber1: string
-  phoneNumber2: string
-  postalCode: string
-  roadNameAddress: boolean
-}[]
-type AddressGroupList = {
-  id: number
-  name: string
-  usable: boolean
-  baseGroup: boolean
-  deliveryFeeChargeMethodType: 'MIN'
-}[]
 
 const LoginForm: React.FC = () => {
   const [commonState, setCommonState] = useRecoilState(common)
@@ -44,10 +20,7 @@ const LoginForm: React.FC = () => {
 
   const getInfo = async (values: GetTokenInfoParams & { shopId: string }) => {
     return await axios
-      .post<{ result: { userInfo: any; shopInfo: any; message: 'SUCCESS' } }>(
-        'https://shop-page-beta.vercel.app/api/auth/login',
-        values,
-      )
+      .post<LoginResult>('/auth/login', values)
       .then(({ data }) => {
         if (data.result.message === 'SUCCESS') {
           setCommonState({
@@ -66,30 +39,22 @@ const LoginForm: React.FC = () => {
         }
       })
       .catch((e) => {
-        console.log(e)
+        throw e.message
       })
   }
 
   const onFinish = async (values: GetTokenInfoParams & { shopId: string }) => {
-    const info: any = await getInfo(values)
-    const send = info.shopInfo.filter((x: any) => x.type === 'send')[0]
-    const receive = info.shopInfo.filter((x: any) => x.type === 'receive')[0]
-
-    const url = 'https://shop-page-beta.vercel.app/api/engines/smartstore/getAddressBookList'
-    const response = (await axios(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      data: { receive: receive },
-    }).then(({ data }) => data.result)) as {
+    const info = await getInfo(values)
+    const response = (await axios
+      .post('/engines/smartstore/getAddressBookList', { shopInfo: info.shopInfo })
+      .then(({ data }) => data.result)) as {
       list: {
         addressBooks: AddressBookList
       }
     }
 
-    const urlGroup = 'https://shop-page-beta.vercel.app/api/engines/smartstore/getGroupAddressList'
-    const responseGroup = (await axios.post(urlGroup, { receive: receive }).then(({ data }) => data.result)) as {
+    const urlGroup = '/engines/smartstore/getGroupAddressList'
+    const responseGroup = (await axios.post(urlGroup, { shopInfo: info.shopInfo }).then(({ data }) => data.result)) as {
       list: {
         contents: AddressGroupList
       }
@@ -100,16 +65,6 @@ const LoginForm: React.FC = () => {
         ...solutionState,
         userInfo: info.userInfo,
         shopInfo: info.shopInfo,
-        send: {
-          sol_shop_no: send.sol_shop_no,
-          client_key: send.client_key,
-          client_secret_key: send.client_secret_key,
-        },
-        receive: {
-          sol_shop_no: receive.sol_shop_no,
-          client_key: receive.client_key,
-          client_secret_key: receive.client_secret_key,
-        },
         shippingAddressList: response.list.addressBooks.filter((x) => x.addressType === 'RELEASE'),
         returnAddressList: response.list.addressBooks.filter((x) => x.addressType === 'REFUND_OR_EXCHANGE'),
         groupAddressList: responseGroup.list.contents,
@@ -117,11 +72,12 @@ const LoginForm: React.FC = () => {
         returnAddress: response.list.addressBooks.filter((x) => x.addressType === 'REFUND_OR_EXCHANGE')[0],
         groupAddress: responseGroup.list.contents[0],
       })
-
-      console.log(solutionState)
     }
 
-    router.push('/product/excelUpload')
+    // router.push('/product/excelUpload')
+
+    console.log('go to shoplist')
+    router.push('/shop/list')
   }
 
   return (
@@ -136,29 +92,28 @@ const LoginForm: React.FC = () => {
         onFinishFailed={onFinishFailed}
         autoComplete="off"
       >
-        <Form.Item<FieldType>
+        <Form.Item<LoginFieldType>
           label="Smartstore"
           name="shopId"
           rules={[{ required: true, message: 'Please input your Smartstore shop ID!' }]}
         >
-          <Input />
+          <Input defaultValue={'info@malihua.jp'} />
         </Form.Item>
-        <Form.Item<FieldType> label="Email" name="email" rules={[{ required: true, message: 'Please input your clientKey!' }]}>
-          <Input />
+        <Form.Item<LoginFieldType>
+          label="Email"
+          name="email"
+          rules={[{ required: true, message: 'Please input your clientKey!' }]}
+        >
+          <Input defaultValue={'admin'} />
         </Form.Item>
 
-        <Form.Item<FieldType>
+        <Form.Item<LoginFieldType>
           label="Password"
           name="password"
           rules={[{ required: true, message: 'Please input your clientSecretKey!' }]}
         >
-          <Input.Password />
+          <Input.Password defaultValue={'admin'} />
         </Form.Item>
-
-        {/* <Form.Item<FieldType> name="remember" valuePropName="checked" wrapperCol={{ offset: 8, span: 16 }}>
-      <Checkbox>Remember me</Checkbox>
-    </Form.Item> */}
-
         <Form.Item wrapperCol={{ offset: 5, span: 19 }}>
           <Button type="primary" htmlType="submit">
             Submit

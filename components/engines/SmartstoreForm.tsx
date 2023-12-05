@@ -22,12 +22,10 @@ const SmartstoreForm: React.FC = () => {
 
   const onFinish = async (values: GetTokenInfoParams) => {
     await axios
-      .post<{ result: { token: string; message: 'SUCCESS' } }>('http://localhost:4001/api/engines/smartstore/list', values)
+      .post<{ result: { token: string; message: 'SUCCESS' } }>('/engines/smartstore/list', values)
       .then(async ({ data }) => {
         if (data.result.message === 'SUCCESS') {
-          return await axios
-            .post('http://localhost:4001/api/engines/smartstore/getChannelInfo', { token: data.result.token })
-            .then(({ data }) => data)
+          return await axios.post('/engines/smartstore/getChannelInfo', { token: data.result.token }).then(({ data }) => data)
         } else {
           throw 'NO TOKEN'
         }

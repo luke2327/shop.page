@@ -8,7 +8,7 @@ type ILayoutProps = {
   children: ReactNode
 }
 const ExcelUpload: React.FC<ILayoutProps> = (params) => {
-  const [commonState, setCommonState] = useRecoilState(common)
+  const [commonState] = useRecoilState(common)
 
   return commonState.step === 2 ? (
     <div className={styles.container}>
