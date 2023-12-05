@@ -15,7 +15,7 @@ export default class AuthService {
   async getShopInfo(params: { user_no: number }) {
     const queryString = `
       SELECT * FROM \`kmong.com\`.SolShop
-      WHERE user_no = ${params.user_no};
+      WHERE user_no = ${params.user_no} AND \`type\` = 'update';
     `
 
     return queryPromise(queryString)

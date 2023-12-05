@@ -23,7 +23,7 @@ export async function sendUrlJson(
     }
   }
 
-  return rpm(options)
+  return rpm(options).catch((e) => e)
 }
 
 export async function sendUrl(method: 'GET' | 'POST' | 'PUT', url: string, vdata: any, headers: any) {
@@ -43,5 +43,5 @@ export async function sendUrl(method: 'GET' | 'POST' | 'PUT', url: string, vdata
     }
   }
 
-  return rpm(options)
+  return rpm(options).catch((e) => e)
 }

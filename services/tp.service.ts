@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt'
 import { sendUrlJson, sendUrl } from '@/services/request.service'
+import { V2List } from 'interface/smartstore.interface'
 
 export type GetTokenInfoParams = {
   client_secret_key: string
@@ -65,19 +66,38 @@ export async function productRegist(params: any, list: any) {
   // const format = this.createProductFormat(list)
 }
 
-export async function productSearchList(params: any) {
-  const result: any = { list: [], fail: 0, success: 0 }
-  console.log('start!', params.send)
+export async function productSearchListV2(token: string, prodCodeList: number[]) {
+  const headers = { Authorization: token }
+  const data = {
+    searchKeywordType: 'CHANNEL_PRODUCT_NO',
+    page: 1,
+    size: 500,
+    channelProductNos: prodCodeList,
+  }
 
-  const token = await getTokenInfo(params.send)
-  console.log('-----------------1')
-  console.log(token)
-  console.log('-----------------1')
+  const payload = ['POST', 'products/search', data, headers] as const
+  const re: V2List = await sendUrlSmartstore(...payload)
+
+  console.log(re)
+
+  return re
+}
+
+export async function productDetail(token: string, productNo: any) {
+  const headers = { Authorization: token }
+  const payload = ['GET', `products/channel-products/${productNo}`, {}, headers, 'form', 'v2'] as const
+  const re = await sendUrlSmartstore(...payload).then(JSON.parse)
+
+  return re
+}
+
+export async function productSearchList(token: string, productList: any) {
+  const result: any = { list: [], fail: 0, success: 0 }
   const headers = { Authorization: token }
 
-  for (const row of params.selectedRows) {
+  for (const row of productList) {
     console.log(111111)
-    const payload = ['GET', `products/channel-products/${row.product_code}`, {}, headers, 'form', 'v2'] as const
+    const payload = ['GET', `products/channel-products/${row.productNo}`, {}, headers, 'form', 'v2'] as const
     const re = await sendUrlSmartstore(...payload).then(JSON.parse)
 
     console.log(re)
@@ -178,12 +198,14 @@ export async function callProducts(body: any, token: string, mode: 'regist' | 'u
   return await sendUrlSmartstore(...payload)
 }
 
-export async function productEdit(params: any, token: string) {
+export async function productEdit(token: string, params: any) {
   const headers = { Authorization: token }
-  const endpoint = `products/channel-products/${params.product_code}`
-
-  const payload = ['PUT', endpoint, params.body, headers, 'form', 'v2'] as const
+  const endpoint = `products/channel-products/${params.productNo}`
+  const payload = ['PUT', endpoint, params.body, headers, 'body', 'v2'] as const
   const re = await sendUrlSmartstore(...payload)
+
+  console.log(1111)
+  console.log(re)
 
   return re
 }
