@@ -3,6 +3,7 @@ import { ConfigProvider } from 'antd'
 import type { AppProps } from 'next/app'
 import { RecoilRoot } from 'recoil'
 import Layout from '@/components/layout'
+import '@/lib/axios'
 import '@/styles/globals.scss'
 
 const App = ({ Component, pageProps }: AppProps) => (
