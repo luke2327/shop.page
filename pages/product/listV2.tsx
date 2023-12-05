@@ -361,7 +361,7 @@ const App: React.FC = () => {
       <Modal title="상품 전송" open={isModalSendOpen} onOk={handleOkSend} onCancel={() => setIsModalSendOpen(false)}>
         <p className="text-stone-500">{sendData.length} 상품의 전송을 진행합니다</p>
         <p className="text-lg mt-2">E쿠폰 정보</p>
-        <p>E쿠폰 유효기간 내용(구매일로부터 00일)</p>
+        <p>E쿠폰 유효기간(구매일로부터 00일)</p>
         <InputNumber
           className="w-full"
           controls={false}
@@ -370,21 +370,21 @@ const App: React.FC = () => {
           placeholder="13"
           disabled
         />
-        <p className="mt-2">E쿠폰 발행처 내용</p>
+        <p className="mt-2">E쿠폰 발행처</p>
         <Input
           className="w-full"
           onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, publicInformationContents: e.target.value })}
           value={batchEditCoupon.publicInformationContents}
           disabled
         />
-        <p className="mt-2">E쿠폰 연락처 내용</p>
+        <p className="mt-2">E쿠폰 연락처</p>
         <Input
           className="w-full"
           onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, contactInformationContents: e.target.value })}
           value={batchEditCoupon.contactInformationContents}
           disabled
         />
-        <p className="mt-2">사용 장소 내용</p>
+        <p className="mt-2">사용 장소</p>
         <Input
           className="w-full"
           onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, usePlaceContents: e.target.value })}
@@ -405,6 +405,7 @@ const App: React.FC = () => {
           onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, restrictCart: e.target.value })}
           disabled
         />
+        <p className="mt-2">쿠폰정보 미입력 시 에러가 발생하며 연락처란에는 숫자 및 - 기호만 허용됩니다</p>
         {sendLoading ? <p className="mt-2">전송 중 입니다. 잠시만 기다려 주세요...</p> : null}
       </Modal>
       <Modal title="일괄수정 태그" open={isModalTagOpen} onOk={handleOkTag} onCancel={handleCancelTag}>

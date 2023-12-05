@@ -92,19 +92,19 @@ const LoginForm: React.FC = () => {
         onFinishFailed={onFinishFailed}
         autoComplete="off"
       >
-        <Form.Item<LoginFieldType>
+        {/* <Form.Item<LoginFieldType>
           label="Smartstore"
           name="shopId"
           rules={[{ required: true, message: 'Please input your Smartstore shop ID!' }]}
         >
           <Input defaultValue={'info@malihua.jp'} />
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item<LoginFieldType>
           label="Email"
           name="email"
           rules={[{ required: true, message: 'Please input your clientKey!' }]}
         >
-          <Input defaultValue={'admin'} />
+          <Input />
         </Form.Item>
 
         <Form.Item<LoginFieldType>
@@ -112,7 +112,7 @@ const LoginForm: React.FC = () => {
           name="password"
           rules={[{ required: true, message: 'Please input your clientSecretKey!' }]}
         >
-          <Input.Password defaultValue={'admin'} />
+          <Input.Password />
         </Form.Item>
         <Form.Item wrapperCol={{ offset: 5, span: 19 }}>
           <Button type="primary" htmlType="submit">

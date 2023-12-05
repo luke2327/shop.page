@@ -17,7 +17,7 @@ const menu: Partial<BreadcrumbItemType & BreadcrumbSeparatorType>[] = [
     title: (
       <>
         <UserOutlined />
-        <span>CSV Upload</span>
+        <span>상품 가져오기</span>
       </>
     ),
   },
