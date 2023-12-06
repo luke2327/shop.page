@@ -371,7 +371,16 @@ const App: React.FC = () => {
         scroll={{ x: 1300, y: 600 }}
         sticky
       />
-      <Modal title="상품 전송" open={isModalSendOpen} onOk={handleOkSend} onCancel={() => setIsModalSendOpen(false)}>
+      <Modal
+        title="상품 전송"
+        open={isModalSendOpen}
+        onOk={handleOkSend}
+        onCancel={() => setIsModalSendOpen(false)}
+        okButtonProps={{
+          disabled: sendLoading,
+          loading: sendLoading,
+        }}
+      >
         <p className="text-stone-500">{sendData.length} 상품의 전송을 진행합니다</p>
         <p className="text-lg mt-2">E쿠폰 정보</p>
         <p>E쿠폰 유효기간(구매일로부터 00일)</p>
