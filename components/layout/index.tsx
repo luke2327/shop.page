@@ -15,7 +15,7 @@ const Layout: React.FC<ILayoutProps> = (params) => {
     <div id="layout" className={params.className + ' font-raleway'}>
       <Header />
       <main className="px-2">
-        <section className={`border-zinc-200 border-2 p-2 min-h-full ${pathname === '/' ? 'flex items-center' : ''}`}>
+        <section className={`border-zinc-200 border-2 p-2 pt-0 min-h-full ${pathname === '/' ? 'flex items-center' : ''}`}>
           {params.children}
         </section>
       </main>

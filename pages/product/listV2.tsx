@@ -1,5 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { Form, Input, InputNumber, Popconfirm, Table, Typography, Modal, Badge, Radio, notification, Button } from 'antd'
+import {
+  Form,
+  Input,
+  InputNumber,
+  Popconfirm,
+  Table,
+  Typography,
+  Modal,
+  Badge,
+  Radio,
+  notification,
+  Button,
+  Divider,
+} from 'antd'
 import { productV2 } from '@/lib/store/product'
 import { useRecoilValue } from 'recoil'
 import { common, permission, solution } from '@/lib/store/common'
@@ -20,6 +33,11 @@ interface Item {
   productLink: string
   productTag: string
   salePrice: number
+  productQuantity: number
+  productDiscountedPrice: number
+  productCategory: string
+  regDate: Date
+  modifiedDate: Date
   productCoupon: {
     periodType: string
     periodDays: number
@@ -135,6 +153,11 @@ const App: React.FC = () => {
         siteName: '',
         restrictCart: true,
       },
+      productQuantity: x.channelProducts[0].stockQuantity,
+      productDiscountedPrice: x.channelProducts[0].discountedPrice,
+      productCategory: x.channelProducts[0].wholeCategoryName,
+      regDate: x.channelProducts[0].regDate,
+      modifiedDate: x.channelProducts[0].modifiedDate,
       productOption: x.detail?.originProduct.detailAttribute.optionInfo,
     })),
   )
@@ -197,12 +220,25 @@ const App: React.FC = () => {
       dataIndex: 'productNo',
       width: 100,
       dataType: 'number',
+      fixed: 'left',
     },
     {
       title: '상태',
       dataIndex: 'statusType',
-      width: 80,
+      width: 68,
       render: (text: string) => <Badge status="success" text={text === 'SALE' ? '판매중' : text} />,
+    },
+    {
+      title: '등록일',
+      dataIndex: 'regDate',
+      width: 92,
+      render: (text: string) => <span>{text.replace('T', ' ').split(' ')[0]}</span>,
+    },
+    {
+      title: '수정일',
+      dataIndex: 'modifiedDate',
+      width: 92,
+      render: (text: string) => <span>{text.replace('T', ' ').split(' ')[0]}</span>,
     },
     {
       title: '상품명',
@@ -211,11 +247,31 @@ const App: React.FC = () => {
       dataType: 'string',
     },
     {
+      title: '카테고리',
+      dataIndex: 'productCategory',
+      width: 200,
+      dataType: 'string',
+    },
+    {
       title: '가격',
       dataIndex: 'salePrice',
       width: 100,
       dataType: 'string',
       render: (text: number) => <p>{new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(text)}</p>,
+    },
+    {
+      title: '세일 가격',
+      dataIndex: 'productDiscountedPrice',
+      width: 100,
+      dataType: 'string',
+      render: (text: number) => <p>{new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(text)}</p>,
+    },
+    {
+      title: '재고',
+      dataIndex: 'productQuantity',
+      width: 60,
+      dataType: 'string',
+      render: (text: number) => <p>{text}</p>,
     },
     {
       title: '이미지',
@@ -229,15 +285,16 @@ const App: React.FC = () => {
     {
       title: '태그',
       dataIndex: 'productTag',
-      width: '400',
+      width: 400,
       dataType: 'string',
       editable: true,
+      ellipsis: true,
       render: (text: string, record: Item) => <p>{record.productTag}</p>,
     },
     {
       title: '옵션',
       dataIndex: 'productOption',
-      width: '100',
+      width: 128,
       dataType: 'string',
       render: (data: OptionInfo, record: Item) => {
         if (data && data.optionCombinations?.length) {
@@ -258,6 +315,7 @@ const App: React.FC = () => {
       title: '작업',
       dataIndex: 'operation',
       width: 100,
+      fixed: 'right',
       render: (_: any, record: Item) => {
         const editable = isEditing(record)
         return editable ? (
@@ -400,16 +458,45 @@ const App: React.FC = () => {
     <div className="flex flex-col gap-2">
       <Form form={form} component={false}>
         {contextHolder}
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <div className="flex items-center gap-4">
-            <Button type="primary" onClick={showModalTag} disabled={!hasPermission('batchEditTag')}>
-              일괄수정 태그
-            </Button>
-            <Button type="primary" onClick={showModalCoupon} disabled={!hasPermission('batchEditCoupon')}>
-              일괄수정 쿠폰
-            </Button>
-          </div>
+        <div className="flex items-start justify-between gap-4 mb-2">
           <div>
+            <Divider orientation="left" className="!my-1">
+              일괄수정
+            </Divider>
+            <div className="flex flex-wrap items-center gap-1">
+              <Button type="primary" size="small" onClick={showModalTag} disabled={!hasPermission('batchEditTag')}>
+                태그
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={!hasPermission('batchEditCoupon')}>
+                쿠폰
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                가격
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                배송사
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                재고
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                원산지
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                할인/판매기간
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                브랜드/제조사
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                제조일자/유효일자
+              </Button>
+              <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
+                반품배송비/교환배송비
+              </Button>
+            </div>
+          </div>
+          <div className="mt-2">
             <Button disabled={sendData.length === 0} type="primary" onClick={() => setIsModalSendOpen(true)}>
               전송
             </Button>
@@ -423,7 +510,7 @@ const App: React.FC = () => {
           }}
           bordered
           dataSource={data}
-          columns={mergedColumns}
+          columns={mergedColumns as any}
           rowClassName="editable-row"
           rowSelection={{
             type: 'checkbox',
@@ -433,7 +520,7 @@ const App: React.FC = () => {
             onChange: cancel,
             pageSizeOptions: [10, 20, 50, 100, 250, 500],
           }}
-          scroll={{ x: 1300, y: '50vw' }}
+          scroll={{ x: 1200, y: '50vw' }}
           sticky
         />
         <Modal title="상품 전송" open={isModalSendOpen} onOk={handleOkSend} onCancel={() => setIsModalSendOpen(false)}>

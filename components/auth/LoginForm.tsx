@@ -104,6 +104,8 @@ const LoginForm: React.FC = () => {
 
     if (loginInfoSave) {
       localStorage.setItem('loginInfo', JSON.stringify(values))
+    } else {
+      localStorage.removeItem('loginInfo')
     }
 
     router.push('/shop/list')
