@@ -31,6 +31,7 @@ export type V2List = {
 export type Content = {
   originProductNo: number
   channelProducts: ChannelProduct[]
+  detail?: Detail
 }
 
 export type ChannelProduct = {
@@ -61,10 +62,6 @@ export type RepresentativeImage = {
   url: string
 }
 
-export type SellerTag = {
-  text: string
-}
-
 export type Sort = {
   sorted: boolean
   fields: Field[]
@@ -73,4 +70,207 @@ export type Sort = {
 export type Field = {
   name: string
   direction: string
+}
+
+export type Detail = {
+  originProduct: OriginProduct
+  smartstoreChannelProduct: SmartstoreChannelProduct
+}
+
+export type OriginProduct = {
+  statusType: string
+  saleType: string
+  leafCategoryId: string
+  name: string
+  images: Images
+  salePrice: number
+  stockQuantity: number
+  deliveryInfo: DeliveryInfo
+  detailAttribute: DetailAttribute
+  customerBenefit: CustomerBenefit
+}
+
+export type CustomerBenefit = {
+  immediateDiscountPolicy: ImmediateDiscountPolicy
+  giftPolicy: GiftPolicy
+}
+
+export type GiftPolicy = {
+  presentContent: string
+}
+
+export type ImmediateDiscountPolicy = {
+  discountMethod: DiscountMethod
+  mobileDiscountMethod: DiscountMethod
+}
+
+export type DiscountMethod = {
+  value: number
+  unitType: string
+}
+
+export type DeliveryInfo = {
+  deliveryType: string
+  deliveryAttributeType: string
+  deliveryCompany: string
+  deliveryBundleGroupUsable: boolean
+  deliveryBundleGroupId: number
+  deliveryFee: DeliveryFee
+  claimDeliveryInfo: ClaimDeliveryInfo
+  installationFee: boolean
+}
+
+export type ClaimDeliveryInfo = {
+  returnDeliveryCompanyPriorityType: string
+  returnDeliveryFee: number
+  exchangeDeliveryFee: number
+  shippingAddressId: number
+  returnAddressId: number
+  freeReturnInsuranceYn: boolean
+}
+
+export type DeliveryFee = {
+  deliveryFeeType: string
+  baseFee: number
+  freeConditionalAmount: number
+  deliveryFeePayType: string
+  differentialFeeByArea: string
+}
+
+export type DetailAttribute = {
+  naverShoppingSearchInfo: NaverShoppingSearchInfo
+  afterServiceInfo: AfterServiceInfo
+  originAreaInfo: OriginAreaInfo
+  optionInfo: OptionInfo
+  supplementProductInfo: SupplementProductInfo
+  purchaseReviewInfo: PurchaseReviewInfo
+  eventPhraseCont: string
+  taxType: string
+  certificationTargetExcludeContent: CertificationTargetExcludeContent
+  sellerCommentUsable: boolean
+  minorPurchasable: boolean
+  productInfoProvidedNotice: ProductInfoProvidedNotice
+  itselfProductionProductYn: boolean
+  seoInfo: SEOInfo
+}
+
+export type AfterServiceInfo = {
+  afterServiceTelephoneNumber: string
+  afterServiceGuideContent: string
+}
+
+export type CertificationTargetExcludeContent = object
+
+export type NaverShoppingSearchInfo = {
+  modelName: string
+  manufacturerName: string
+  brandName: string
+}
+
+export type OptionCombinations = {
+  id: number
+  optionName1: string
+  optionName2: string
+  price: number
+  stockQuantity: number
+  usable: boolean
+}
+
+export type OptionInfo = Partial<{
+  simpleOptionSortType: string
+  optionSimple: any[]
+  optionCustom: any[]
+  optionCombinations: OptionCombinations[]
+  optionCombinationSortType: string
+  useStockManagement: boolean
+  optionDeliveryAttributes: any[]
+}>
+
+export type OriginAreaInfo = {
+  originAreaCode: string
+  content: string
+  plural: boolean
+}
+
+export type ProductInfoProvidedNotice = {
+  productInfoProvidedNoticeType: string
+  generalFood: GeneralFood
+}
+
+export type GeneralFood = {
+  returnCostReason: string
+  noRefundReason: string
+  qualityAssuranceStandard: string
+  compensationProcedure: string
+  troubleShootingContents: string
+  productName: string
+  foodType: string
+  producer: string
+  location: string
+  packDateText: string
+  consumptionDateText: string
+  weight: string
+  amount: string
+  ingredients: string
+  geneticallyModified: boolean
+  consumerSafetyCaution: string
+  importDeclarationCheck: boolean
+  customerServicePhoneNumber: string
+}
+
+export type PurchaseReviewInfo = {
+  purchaseReviewExposure: boolean
+}
+
+export type SEOInfo = {
+  sellerTags: SellerTag[]
+}
+
+export type SellerTag = {
+  code?: number
+  text: string
+}
+
+export type SupplementProductInfo = {
+  sortType: string
+  supplementProducts: SupplementProduct[]
+}
+
+export type SupplementProduct = {
+  id: number
+  groupName: string
+  name: string
+  price: number
+  stockQuantity: number
+  usable: boolean
+}
+
+export type Images = {
+  representativeImage: RepresentativeImage
+  optionalImages: any[]
+}
+
+export type SmartstoreChannelProduct = {
+  storeKeepExclusiveProduct: boolean
+  naverShoppingRegistration: boolean
+  channelProductDisplayStatusType: string
+}
+
+export type ProductSendResult = {
+  result: {
+    message: string
+    success: number
+    fail: number
+    total: number
+    errors: ProductSendErrors[]
+  }
+}
+
+export type ProductSendErrors = {
+  productNo: number
+  errorList: {
+    type: string
+    message: string
+    name: string
+  }[]
 }

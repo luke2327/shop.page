@@ -4,12 +4,14 @@ import { V2Data } from '@/pages/api/engines/smartstore/list'
 import { Card, Input } from 'antd'
 import axios from 'axios'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useDebounce } from './hooks/useDebounce'
 
 const ShopList: React.FC = () => {
   const router = useRouter()
   const commonState = useRecoilValue(common)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     if (!commonState.isLogin) {
@@ -21,12 +23,11 @@ const ShopList: React.FC = () => {
   const setProductV2State = useSetRecoilState(productV2)
   const [prodCode, setProdCode] = useState('')
 
-  console.log(solutionState)
   const onSubmit = async () => {
-    console.log(prodCode.split(','))
     const payload = {
       ...solutionState.shopInfo,
       prodCodeList: prodCode.split('\n').map((x) => x.trim()),
+      userInfo: solutionState.userInfo,
     }
     const result = await axios.post<V2Data>('/engines/smartstore/productList', payload)
 
@@ -36,15 +37,22 @@ const ShopList: React.FC = () => {
 
     router.push('/product/listV2')
   }
+
+  const handleChange = useDebounce((event: React.ChangeEvent<HTMLInputElements>) => {
+    event.persist()
+    setProdCode(event.target.value)
+  }, 500)
+
   return (
     <div>
       <p className="text-lg">상품번호</p>
       <p className="text-zinc-500">불러올 상품번호를 입력해주세요. 엔터로 구분합니다.</p>
       <p className="text-zinc-500">최대 500개 단위로 입력할 수 있습니다.</p>
       <Input.TextArea
-        onChange={(e) => setProdCode(e.target.value)}
+        ref={textareaRef}
         className={'!h-[400] !flex !items-start !justify-start'}
         style={{ minHeight: 400 }}
+        onChange={handleChange}
         placeholder="9615205949"
       />
 
@@ -52,10 +60,12 @@ const ShopList: React.FC = () => {
       <p className="text-zinc-500">상품번호 입력 후 불러올 상점을 선택 후 잠시 기다려 주세요</p>
       <Card
         title={solutionState.shopInfo.shop_name}
-        bordered={false}
+        bordered={true}
         style={{ width: 440 }}
-        className="cursor-pointer hover:bg-zinc-100 transition ease-in-out delay-75 mt-2"
+        className="cursor-pointer hover:bg-neutral-200 transition ease-in-out delay-50 mt-2 !border-neutral-300"
         onClick={onSubmit}
+        bodyStyle={{ padding: 12 }}
+        headStyle={{ padding: 12 }}
       >
         <h1 className="text-xl">{solutionState.shopInfo.shop_id}</h1>
         <div className="flex w-full">

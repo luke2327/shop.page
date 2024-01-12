@@ -2,12 +2,13 @@ import React from 'react'
 import { Button, Form, Input } from 'antd'
 import axios from 'axios'
 import { GetTokenInfoParams } from '@/services/tp.service'
-import { useRecoilState } from 'recoil'
-import { common, solution } from '@/lib/store/common'
+import { useRecoilState, useSetRecoilState } from 'recoil'
+import { ProductNotificationValue, common, productNotification, solution } from '@/lib/store/common'
 import { useRouter } from 'next/router'
 import styles from '@/styles/Home.module.css'
 import { LoginFieldType, LoginResult } from 'interface/auth.interface'
 import { AddressBookList, AddressGroupList } from 'interface/smartstore.interface'
+import Pusher from 'pusher-js'
 
 const onFinishFailed = (errorInfo: any) => {
   console.log('Failed:', errorInfo)
@@ -16,6 +17,7 @@ const onFinishFailed = (errorInfo: any) => {
 const LoginForm: React.FC = () => {
   const [commonState, setCommonState] = useRecoilState(common)
   const [solutionState, setSolutionState] = useRecoilState(solution)
+  const setProductNotification = useSetRecoilState(productNotification)
   const router = useRouter()
 
   const getInfo = async (values: GetTokenInfoParams & { shopId: string }) => {
@@ -45,6 +47,20 @@ const LoginForm: React.FC = () => {
 
   const onFinish = async (values: GetTokenInfoParams & { shopId: string }) => {
     const info = await getInfo(values)
+    const pusher = new Pusher('a5d2ded0be04d3d9806e', {
+      cluster: 'ap3',
+    })
+    const channel = pusher.subscribe('indicator-' + info.userInfo.user_no)
+    channel.bind('message', (data: ProductNotificationValue) => {
+      setProductNotification({
+        isShow: true,
+        title: data.title,
+        success: data.success,
+        fail: data.fail,
+        total: data.total,
+      })
+    })
+
     const response = (await axios
       .post('/engines/smartstore/getAddressBookList', { shopInfo: info.shopInfo })
       .then(({ data }) => data.result)) as {
@@ -74,9 +90,6 @@ const LoginForm: React.FC = () => {
       })
     }
 
-    // router.push('/product/excelUpload')
-
-    console.log('go to shoplist')
     router.push('/shop/list')
   }
 
