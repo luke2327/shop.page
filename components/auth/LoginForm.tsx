@@ -1,12 +1,12 @@
-import React from 'react'
-import { Button, Form, Input } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Button, Checkbox, Form, Input } from 'antd'
 import axios from 'axios'
 import { GetTokenInfoParams } from '@/services/tp.service'
 import { useRecoilState, useSetRecoilState } from 'recoil'
 import { ProductNotificationValue, common, productNotification, solution } from '@/lib/store/common'
 import { useRouter } from 'next/router'
 import styles from '@/styles/Home.module.css'
-import { LoginFieldType, LoginResult } from 'interface/auth.interface'
+import { LoginFieldType, LoginInfo, LoginResult } from 'interface/auth.interface'
 import { AddressBookList, AddressGroupList } from 'interface/smartstore.interface'
 import Pusher from 'pusher-js'
 
@@ -15,10 +15,22 @@ const onFinishFailed = (errorInfo: any) => {
 }
 
 const LoginForm: React.FC = () => {
+  const [form] = Form.useForm()
+  const [loginInfoSave, setLoginInfoSave] = useState(false)
   const [commonState, setCommonState] = useRecoilState(common)
   const [solutionState, setSolutionState] = useRecoilState(solution)
   const setProductNotification = useSetRecoilState(productNotification)
   const router = useRouter()
+
+  useEffect(() => {
+    const loginInfo = localStorage.getItem('loginInfo')
+
+    if (loginInfo) {
+      form.setFieldsValue(JSON.parse(loginInfo) as LoginInfo)
+      setLoginInfoSave(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const getInfo = async (values: GetTokenInfoParams & { shopId: string }) => {
     return await axios
@@ -90,17 +102,22 @@ const LoginForm: React.FC = () => {
       })
     }
 
+    if (loginInfoSave) {
+      localStorage.setItem('loginInfo', JSON.stringify(values))
+    }
+
     router.push('/shop/list')
   }
 
   return (
-    <div className={styles.loginForm}>
+    <div className={styles.loginForm + ' flex flex-col'}>
+      <h1 className="pb-4 text-xl">Minerva Login</h1>
       <Form
+        form={form}
         name="basic"
         labelCol={{ span: 5 }}
         wrapperCol={{ span: 19 }}
         style={{ maxWidth: 500, width: '100%' }}
-        initialValues={{ remember: true }}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         autoComplete="off"
@@ -127,11 +144,17 @@ const LoginForm: React.FC = () => {
         >
           <Input.Password />
         </Form.Item>
-        <Form.Item wrapperCol={{ offset: 5, span: 19 }}>
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
-        </Form.Item>
+        <div className="flex justify-end items-start gap-2">
+          <div className="flex gap-2">
+            <span>로그인 정보 저장</span>
+            <Checkbox checked={loginInfoSave} onChange={(e) => setLoginInfoSave(e.target.checked)} />
+          </div>
+          <Form.Item className="flex justify-end">
+            <Button type="primary" htmlType="submit">
+              Login
+            </Button>
+          </Form.Item>
+        </div>
       </Form>
     </div>
   )
