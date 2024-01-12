@@ -1,5 +1,5 @@
-import { ShopInfo, UserInfo } from 'interface/auth.interface'
-import { atom } from 'recoil'
+import { Role, ShopInfo, UserInfo } from 'interface/auth.interface'
+import { atom, selector } from 'recoil'
 
 export const common = atom<{
   step: number
@@ -14,7 +14,7 @@ export const common = atom<{
   },
 })
 
-export const solution = atom<{
+interface Solution {
   userInfo: UserInfo | NonNullable<unknown>
   shopInfo: ShopInfo
   send: any
@@ -25,7 +25,9 @@ export const solution = atom<{
   shippingAddress: any
   returnAddress: any
   groupAddress: any
-}>({
+}
+
+export const solution = atom<Solution>({
   key: 'solutionState',
   default: {
     userInfo: {},
@@ -47,5 +49,45 @@ export const solution = atom<{
     shippingAddress: {},
     returnAddress: {},
     groupAddress: {},
+  },
+})
+
+export const userInfo = selector({
+  key: 'userInfo',
+  get: ({ get }) => {
+    const solutionState = get(solution)
+
+    return solutionState.userInfo as UserInfo
+  },
+})
+
+export const permission = selector({
+  key: 'permission',
+  get: ({ get }) => {
+    const solutionState = get(solution)
+
+    return (solutionState.userInfo as UserInfo).role as Role
+  },
+})
+
+export type ProductNotificationValue = {
+  success: number
+  fail: number
+  total: number
+  title: string
+}
+
+export const productNotification = atom<
+  ProductNotificationValue & {
+    isShow: boolean
+  }
+>({
+  key: 'productNotificationState',
+  default: {
+    isShow: false,
+    title: '',
+    success: 0,
+    fail: 0,
+    total: 0,
   },
 })
