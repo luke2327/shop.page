@@ -33,8 +33,6 @@ const ShopList: React.FC = () => {
 
     setProductV2State({ smartstore: result.data.result.list })
 
-    console.log(result.data.result.list)
-
     router.push('/product/listV2')
   }
 
@@ -45,9 +43,9 @@ const ShopList: React.FC = () => {
 
   return (
     <div>
-      <p className="text-lg">상품번호</p>
-      <p className="text-zinc-500">불러올 상품번호를 입력해주세요. 엔터로 구분합니다.</p>
-      <p className="text-zinc-500">최대 500개 단위로 입력할 수 있습니다.</p>
+      <p className="text-lg mt-1">상품번호</p>
+      <p className="text-zinc-500 text-sm">불러올 상품번호를 입력해주세요. 엔터로 구분합니다.</p>
+      <p className="text-zinc-500 text-sm">최대 500개 단위로 입력할 수 있습니다.</p>
       <Input.TextArea
         ref={textareaRef}
         className={'!h-[400] !flex !items-start !justify-start'}
@@ -57,7 +55,7 @@ const ShopList: React.FC = () => {
       />
 
       <p className="text-lg mt-2">등록된 상점 리스트</p>
-      <p className="text-zinc-500">상품번호 입력 후 불러올 상점을 선택 후 잠시 기다려 주세요</p>
+      <p className="text-zinc-500 text-sm">상품번호 입력 후 불러올 상점을 선택 후 잠시 기다려 주세요</p>
       <Card
         title={solutionState.shopInfo.shop_name}
         bordered={true}
