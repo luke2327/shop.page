@@ -19,7 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       prodCodeList: number[]
     }
     const token = await getTokenInfo(params)
-    console.log('토큰정보', token)
     const list = await productSearchListV2(token, params.prodCodeList)
 
     res.status(200).json({

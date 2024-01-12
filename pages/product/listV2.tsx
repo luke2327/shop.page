@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { Form, Input, InputNumber, Popconfirm, Table, Typography, Modal, Badge, Radio, notification, Button } from 'antd'
 import { productV2 } from '@/lib/store/product'
 import { useRecoilValue } from 'recoil'
-import { common, solution } from '@/lib/store/common'
+import { common, permission, solution } from '@/lib/store/common'
 import Image from 'next/image'
 import axios from 'axios'
-import { V2Data } from '../api/engines/smartstore/list'
 import { useRouter } from 'next/router'
+import { OptionInfo, ProductSendErrors, ProductSendResult } from 'interface/smartstore.interface'
+import { OptionModificationModal } from '@/components/engines/smartstore/OptionModificationModal'
+import { usePermission } from '@/components/hooks/usePermission'
+import ProductErrors from '@/components/ProductErrors'
 
 interface Item {
   key: string
@@ -27,6 +30,7 @@ interface Item {
     siteName: string
     restrictCart: boolean
   }
+  productOption?: OptionInfo
 }
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
@@ -73,25 +77,30 @@ const EditableCell: React.FC<EditableCellProps> = ({
   )
 }
 
-const Context = React.createContext({ name: 'Default' })
-
 const App: React.FC = () => {
   const router = useRouter()
-  const commonState = useRecoilValue(common)
-
   useEffect(() => {
     if (!commonState.isLogin) {
       router.push('/')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  const [api, contextHolder] = notification.useNotification()
+
+  const commonState = useRecoilValue(common)
   const productV2State = useRecoilValue(productV2)
   const solutionState = useRecoilValue(solution)
+  const permissionState = useRecoilValue(permission)
+  const { hasPermission } = usePermission(permissionState)
+
+  const [api, contextHolder] = notification.useNotification()
+
   const [sendLoading, setSendLoading] = useState(false)
   const [isModalTagOpen, setIsModalTagOpen] = useState(false)
   const [isModalCouponOpen, setIsModalCouponOpen] = useState(false)
+  const [isModalOptionOpen, setIsModalOptionOpen] = useState(false)
   const [isModalSendOpen, setIsModalSendOpen] = useState(false)
+  const [optionInfoMutation, setOptionInfoMutation] = useState<OptionInfo>()
+  const [selectedOptionParentKey, setSelectedOptionParentKey] = useState<string>('')
   const [batchEditTag, setBatchEditTag] = useState('')
   const [batchEditCoupon, setBatchEditCoupon] = useState({
     periodType: 'FLEXIBLE',
@@ -103,6 +112,7 @@ const App: React.FC = () => {
     siteName: '',
     restrictCart: true,
   })
+  const [productErrors, setProductErrors] = useState<ProductSendErrors[]>([])
   const [sendData, setSendData] = useState<Item[]>([])
   const [form] = Form.useForm<Item>()
   const [data, setData] = useState<Item[]>(
@@ -125,6 +135,7 @@ const App: React.FC = () => {
         siteName: '',
         restrictCart: true,
       },
+      productOption: x.detail?.originProduct.detailAttribute.optionInfo,
     })),
   )
   const [editingKey, setEditingKey] = useState('')
@@ -224,6 +235,26 @@ const App: React.FC = () => {
       render: (text: string, record: Item) => <p>{record.productTag}</p>,
     },
     {
+      title: '옵션',
+      dataIndex: 'productOption',
+      width: '100',
+      dataType: 'string',
+      render: (data: OptionInfo, record: Item) => {
+        if (data && data.optionCombinations?.length) {
+          return (
+            <p className="flex gap-2">
+              {data.optionCombinations.length}개 존재
+              <Button type="primary" size="small" onClick={() => showModalOption(data, record.key)}>
+                수정
+              </Button>
+            </p>
+          )
+        } else {
+          return <p>옵션 없음</p>
+        }
+      },
+    },
+    {
       title: '작업',
       dataIndex: 'operation',
       width: 100,
@@ -239,7 +270,7 @@ const App: React.FC = () => {
             </Popconfirm>
           </span>
         ) : (
-          <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
+          <Typography.Link disabled={editingKey !== '' || !hasPermission('editTag')} onClick={() => edit(record)}>
             Edit
           </Typography.Link>
         )
@@ -302,7 +333,7 @@ const App: React.FC = () => {
   const handleOkCoupon = () => {
     const newData = data.map((x) => ({ ...x, productCoupon: batchEditCoupon }))
     const newSendData = sendData.map((x) => ({ ...x, productCoupon: batchEditCoupon }))
-    console.log(newData)
+
     setData(newData)
     setSendData(newSendData)
     setIsModalCouponOpen(false)
@@ -312,20 +343,53 @@ const App: React.FC = () => {
     setIsModalCouponOpen(false)
   }
 
+  const showModalOption = (optionInfo: OptionInfo, key: Item['key']) => {
+    setIsModalOptionOpen(true)
+    setOptionInfoMutation(optionInfo)
+    setSelectedOptionParentKey(key)
+  }
+
+  const handleOkOption = (optionCombinations: OptionInfo['optionCombinations']) => {
+    console.log(selectedOptionParentKey, optionCombinations)
+    setIsModalOptionOpen(false)
+    const newData = data.map((x) => {
+      if (x.key === selectedOptionParentKey) {
+        return { ...x, productOption: { ...x.productOption, optionCombinations } }
+      } else {
+        return x
+      }
+    })
+
+    setData(newData)
+    setSendData(newData)
+    console.log('data update successfully')
+  }
+
+  const handleCancelOption = () => {
+    setIsModalOptionOpen(false)
+  }
+
   const handleOkSend = async () => {
     setSendLoading(true)
     const payload = {
       ...solutionState.shopInfo,
+      permission: permissionState,
       productList: sendData,
+      userInfo: solutionState.userInfo,
     }
-    const result = await axios.post<V2Data>('/engines/smartstore/productEditV2', payload)
-
-    console.log(result)
+    const result = await axios.post<ProductSendResult>('/engines/smartstore/productEditV2', payload)
 
     if (result?.data?.result.message === 'SUCCESS') {
       api.success({
         message: `수정이 완료되었습니다`,
+        description: `총 ${result.data.result.total}개 | 성공 ${result.data.result.success} / 실패 ${result.data.result.fail}`,
       })
+
+      if (result.data.result.fail > 0 && result.data.result.errors) {
+        setProductErrors(result.data.result.errors)
+      } else if (result.data.result.fail === 0) {
+        setProductErrors([])
+      }
     }
 
     setIsModalSendOpen(false)
@@ -333,150 +397,125 @@ const App: React.FC = () => {
   }
 
   return (
-    <Form form={form} component={false}>
-      {contextHolder}
-      <div className="flex items-center justify-between gap-4 mb-2">
-        <div className="flex items-center gap-4">
-          <Button type="primary" onClick={showModalTag}>
-            일괄수정 태그
-          </Button>
-          <Button type="primary" onClick={showModalCoupon}>
-            일괄수정 쿠폰
-          </Button>
+    <div className="flex flex-col gap-2">
+      <Form form={form} component={false}>
+        {contextHolder}
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex items-center gap-4">
+            <Button type="primary" onClick={showModalTag} disabled={!hasPermission('batchEditTag')}>
+              일괄수정 태그
+            </Button>
+            <Button type="primary" onClick={showModalCoupon} disabled={!hasPermission('batchEditCoupon')}>
+              일괄수정 쿠폰
+            </Button>
+          </div>
+          <div>
+            <Button disabled={sendData.length === 0} type="primary" onClick={() => setIsModalSendOpen(true)}>
+              전송
+            </Button>
+          </div>
         </div>
-        <div>
-          <Button disabled={sendData.length === 0} type="primary" onClick={() => setIsModalSendOpen(true)}>
-            전송
-          </Button>
-        </div>
-      </div>
-      <Table
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-        bordered
-        dataSource={data}
-        columns={mergedColumns}
-        rowClassName="editable-row"
-        rowSelection={{
-          type: 'checkbox',
-          ...rowSelection,
-        }}
-        pagination={{
-          onChange: cancel,
-          pageSizeOptions: [10, 20, 50, 100, 250, 500],
-        }}
-        scroll={{ x: 1300, y: 600 }}
-        sticky
-      />
-      <Modal
-        title="상품 전송"
-        open={isModalSendOpen}
-        onOk={handleOkSend}
-        onCancel={() => setIsModalSendOpen(false)}
-        okButtonProps={{
-          disabled: sendLoading,
-          loading: sendLoading,
-        }}
-      >
-        <p className="text-stone-500">{sendData.length} 상품의 전송을 진행합니다</p>
-        <p className="text-lg mt-2">E쿠폰 정보</p>
-        <p>E쿠폰 유효기간(구매일로부터 00일)</p>
-        <InputNumber
-          className="w-full"
-          controls={false}
-          onChange={(value) => setBatchEditCoupon({ ...batchEditCoupon, periodDays: value as number })}
-          value={batchEditCoupon.periodDays}
-          placeholder="13"
-          disabled
+        <Table
+          components={{
+            body: {
+              cell: EditableCell,
+            },
+          }}
+          bordered
+          dataSource={data}
+          columns={mergedColumns}
+          rowClassName="editable-row"
+          rowSelection={{
+            type: 'checkbox',
+            ...rowSelection,
+          }}
+          pagination={{
+            onChange: cancel,
+            pageSizeOptions: [10, 20, 50, 100, 250, 500],
+          }}
+          scroll={{ x: 1300, y: '50vw' }}
+          sticky
         />
-        <p className="mt-2">E쿠폰 발행처</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, publicInformationContents: e.target.value })}
-          value={batchEditCoupon.publicInformationContents}
-          disabled
-        />
-        <p className="mt-2">E쿠폰 연락처</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, contactInformationContents: e.target.value })}
-          value={batchEditCoupon.contactInformationContents}
-          disabled
-        />
-        <p className="mt-2">사용 장소</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, usePlaceContents: e.target.value })}
-          value={batchEditCoupon.usePlaceContents}
-          disabled
-        />
-        <p className="mt-2">사이트명</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, siteName: e.target.value })}
-          value={batchEditCoupon.siteName}
-          disabled
-        />
-        <p className="mt-2">장바구니제한</p>
-        <Radio.Group
-          options={options}
-          value={batchEditCoupon.restrictCart}
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, restrictCart: e.target.value })}
-          disabled
-        />
-        <p className="mt-2">쿠폰정보 미입력 시 에러가 발생하며 연락처란에는 숫자 및 - 기호만 허용됩니다</p>
-        {sendLoading ? <p className="mt-2">전송 중 입니다. 잠시만 기다려 주세요...</p> : null}
-      </Modal>
-      <Modal title="일괄수정 태그" open={isModalTagOpen} onOk={handleOkTag} onCancel={handleCancelTag}>
-        <Input onChange={(e) => setBatchEditTag(e.target.value)} placeholder="블랙,레드" />
-        <p className="pt-1 text-stone-500">- 쉼표로 구분해주세요</p>
-        <p className="pt-1 text-stone-500">- {sendData.length ? sendData.length : data.length}개 상품의 수정을 진행합니다</p>
-      </Modal>
-      <Modal title="일괄수정 쿠폰" open={isModalCouponOpen} onOk={handleOkCoupon} onCancel={handleCancelCoupon}>
-        <p>E쿠폰 유효기간(구매일로부터 00일)</p>
-        <InputNumber
-          className="w-full"
-          controls={false}
-          onChange={(value) => setBatchEditCoupon({ ...batchEditCoupon, periodDays: value as number })}
-          value={batchEditCoupon.periodDays}
-          placeholder="13"
-        />
-        <p className="mt-2">E쿠폰 발행처</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, publicInformationContents: e.target.value })}
-          value={batchEditCoupon.publicInformationContents}
-        />
-        <p className="mt-2">E쿠폰 연락처</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, contactInformationContents: e.target.value })}
-          value={batchEditCoupon.contactInformationContents}
-        />
-        <p className="mt-2">사용 장소</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, usePlaceContents: e.target.value })}
-          value={batchEditCoupon.usePlaceContents}
-        />
-        <p className="mt-2">사이트명</p>
-        <Input
-          className="w-full"
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, siteName: e.target.value })}
-          value={batchEditCoupon.siteName}
-        />
-        <p className="mt-2">장바구니제한</p>
-        <Radio.Group
-          options={options}
-          value={batchEditCoupon.restrictCart}
-          onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, restrictCart: e.target.value })}
-        />
-        <p className="pt-2 text-stone-500">- {data.length}개 상품의 수정을 진행합니다</p>
-      </Modal>
-    </Form>
+        <Modal title="상품 전송" open={isModalSendOpen} onOk={handleOkSend} onCancel={() => setIsModalSendOpen(false)}>
+          <p className="text-stone-500">{sendData.length} 상품의 전송을 진행합니다</p>
+          {hasPermission('batchEditTag') && (
+            <div>
+              <p className="text-lg mt-2">E쿠폰 정보</p>
+              <p>E쿠폰 유효기간(구매일로부터 00일)</p>
+              <InputNumber className="w-full" controls={false} value={batchEditCoupon.periodDays} placeholder="13" disabled />
+              <p className="mt-2">E쿠폰 발행처</p>
+              <Input className="w-full" value={batchEditCoupon.publicInformationContents} disabled />
+              <p className="mt-2">E쿠폰 연락처</p>
+              <Input className="w-full" value={batchEditCoupon.contactInformationContents} disabled />
+              <p className="mt-2">사용 장소</p>
+              <Input className="w-full" value={batchEditCoupon.usePlaceContents} disabled />
+              <p className="mt-2">사이트명</p>
+              <Input className="w-full" value={batchEditCoupon.siteName} disabled />
+              <p className="mt-2">장바구니제한</p>
+              <Radio.Group options={options} value={batchEditCoupon.restrictCart} disabled />
+              <p className="mt-2">쿠폰정보 미입력 시 에러가 발생하며 연락처란에는 숫자 및 - 기호만 허용됩니다</p>
+            </div>
+          )}
+
+          {sendLoading ? <p className="mt-2">전송 중 입니다. 잠시만 기다려 주세요...</p> : null}
+        </Modal>
+        <Modal title="일괄수정 태그" open={isModalTagOpen} onOk={handleOkTag} onCancel={handleCancelTag}>
+          <Input onChange={(e) => setBatchEditTag(e.target.value)} placeholder="블랙,레드" />
+          <p className="pt-1 text-stone-500">- 쉼표로 구분해주세요</p>
+          <p className="pt-1 text-stone-500">- {sendData.length ? sendData.length : data.length}개 상품의 수정을 진행합니다</p>
+        </Modal>
+        <Modal title="일괄수정 쿠폰" open={isModalCouponOpen} onOk={handleOkCoupon} onCancel={handleCancelCoupon}>
+          <p>E쿠폰 유효기간(구매일로부터 00일)</p>
+          <InputNumber
+            className="w-full"
+            controls={false}
+            onChange={(value) => setBatchEditCoupon({ ...batchEditCoupon, periodDays: value as number })}
+            value={batchEditCoupon.periodDays}
+            placeholder="13"
+          />
+          <p className="mt-2">E쿠폰 발행처</p>
+          <Input
+            className="w-full"
+            onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, publicInformationContents: e.target.value })}
+            value={batchEditCoupon.publicInformationContents}
+          />
+          <p className="mt-2">E쿠폰 연락처</p>
+          <Input
+            className="w-full"
+            onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, contactInformationContents: e.target.value })}
+            value={batchEditCoupon.contactInformationContents}
+          />
+          <p className="mt-2">사용 장소</p>
+          <Input
+            className="w-full"
+            onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, usePlaceContents: e.target.value })}
+            value={batchEditCoupon.usePlaceContents}
+          />
+          <p className="mt-2">사이트명</p>
+          <Input
+            className="w-full"
+            onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, siteName: e.target.value })}
+            value={batchEditCoupon.siteName}
+          />
+          <p className="mt-2">장바구니제한</p>
+          <Radio.Group
+            options={options}
+            value={batchEditCoupon.restrictCart}
+            onChange={(e) => setBatchEditCoupon({ ...batchEditCoupon, restrictCart: e.target.value })}
+          />
+          <p className="pt-2 text-stone-500">- {data.length}개 상품의 수정을 진행합니다</p>
+        </Modal>
+        {optionInfoMutation && (
+          <OptionModificationModal
+            open={isModalOptionOpen}
+            onOk={handleOkOption}
+            onCancel={handleCancelOption}
+            optionInfo={optionInfoMutation as OptionInfo}
+          />
+        )}
+      </Form>
+      {Object.keys(productErrors).length ? <ProductErrors productErrors={productErrors} /> : null}
+    </div>
   )
 }
 
