@@ -29,12 +29,10 @@ export default function ProductNotification() {
     }, 3000)
   }
 
-  return (
-    productNotificationState.isShow && (
-      <div className="absolute bottom-5 right-5 border-neutral-300 border rounded-md bg-white w-80 h-20 p-2 pr-6">
-        <span>{productNotificationState.title}</span>
-        <Progress type="line" percent={Number(percent)} />
-      </div>
-    )
-  )
+  return productNotificationState.isShow ? (
+    <div className="absolute bottom-5 right-5 border-neutral-300 border rounded-md bg-white w-80 h-20 p-2 pr-6">
+      <span>{productNotificationState.title}</span>
+      <Progress type="line" percent={Number(percent)} />
+    </div>
+  ) : null
 }
