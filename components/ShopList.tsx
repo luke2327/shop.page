@@ -62,7 +62,7 @@ const ShopList: React.FC = () => {
         title={solutionState.shopInfo.shop_name}
         bordered={true}
         style={{ width: 440 }}
-        className="cursor-pointer hover:bg-neutral-200 transition ease-in-out delay-50 mt-2 !border-neutral-300"
+        className="!cursor-pointer hover:bg-neutral-200 transition ease-in-out delay-50 mt-2 !border-neutral-300"
         onClick={onSubmit}
         bodyStyle={{ padding: 12 }}
         headStyle={{ padding: 12 }}

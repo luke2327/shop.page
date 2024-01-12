@@ -41,3 +41,8 @@ export type LoginFieldType = {
   password?: string
   remember?: string
 }
+
+export type LoginInfo = {
+  email: string
+  password: string
+}
