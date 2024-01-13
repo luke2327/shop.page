@@ -274,3 +274,30 @@ export type ProductSendErrors = {
     name: string
   }[]
 }
+
+export interface Item {
+  key: string
+  statusType: string
+  productName: string
+  productNo: number
+  productImg: string
+  productLink: string
+  productTag: string
+  salePrice: number
+  productQuantity: number
+  productDiscountedPrice: number
+  productCategory: string
+  regDate: Date
+  modifiedDate: Date
+  productCoupon: {
+    periodType: string
+    periodDays: number
+    publicInformationContents: string
+    contactInformationContents: string
+    usePlaceType: string
+    usePlaceContents: string
+    siteName: string
+    restrictCart: boolean
+  }
+  productOption?: OptionInfo
+}

@@ -16,17 +16,11 @@ export type UserInfo = {
   registered_at: string
   tel?: string
   user_no: number
-  role: Role
+  role: Permissions
 }
 
-export type Role = {
-  batchEditTag: boolean
-  batchEditCoupon: boolean
-  editOption: boolean
-  editProductName: boolean
-  editTag: boolean
-}
-
+export type Role = 'batchEditTag' | 'batchEditCoupon' | 'batchEditOption' | 'editOption' | 'editProductName' | 'editTag'
+export type Permissions = Record<Role, boolean>
 export type LoginResult = {
   result: {
     userInfo: UserInfo
@@ -34,14 +28,12 @@ export type LoginResult = {
     message: 'SUCCESS'
   }
 }
-
 export type LoginFieldType = {
   email?: string
   shopId?: string
   password?: string
   remember?: string
 }
-
 export type LoginInfo = {
   email: string
   password: string
