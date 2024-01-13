@@ -6,7 +6,6 @@ import axios from 'axios'
 import { useRouter } from 'next/router'
 import React, { useEffect, useRef, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { useDebounce } from './hooks/useDebounce'
 
 const ShopList: React.FC = () => {
   const router = useRouter()
@@ -36,10 +35,10 @@ const ShopList: React.FC = () => {
     router.push('/product/listV2')
   }
 
-  const handleChange = useDebounce((event: React.ChangeEvent<HTMLInputElements>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElements>) => {
     event.persist()
     setProdCode(event.target.value)
-  }, 500)
+  }
 
   return (
     <div>

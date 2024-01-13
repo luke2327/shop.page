@@ -19,58 +19,23 @@ import { common, permission, solution } from '@/lib/store/common'
 import Image from 'next/image'
 import axios from 'axios'
 import { useRouter } from 'next/router'
-import { OptionInfo, ProductSendErrors, ProductSendResult } from 'interface/smartstore.interface'
+import { OptionInfo, ProductSendErrors, ProductSendResult, Item } from 'interface/smartstore.interface'
 import { OptionModificationModal } from '@/components/engines/smartstore/OptionModificationModal'
 import { usePermission } from '@/components/hooks/usePermission'
 import ProductErrors from '@/components/ProductErrors'
-
-interface Item {
-  key: string
-  statusType: string
-  productName: string
-  productNo: number
-  productImg: string
-  productLink: string
-  productTag: string
-  salePrice: number
-  productQuantity: number
-  productDiscountedPrice: number
-  productCategory: string
-  regDate: Date
-  modifiedDate: Date
-  productCoupon: {
-    periodType: string
-    periodDays: number
-    publicInformationContents: string
-    contactInformationContents: string
-    usePlaceType: string
-    usePlaceContents: string
-    siteName: string
-    restrictCart: boolean
-  }
-  productOption?: OptionInfo
-}
+import OptionBatchModificationModal from '@/components/engines/smartstore/OptionBatchModificationModal'
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   editing: boolean
   dataIndex: string
-  title: any
+  title: string
   inputType: 'number' | 'text'
   record: Item
   index: number
   children: React.ReactNode
 }
 
-const EditableCell: React.FC<EditableCellProps> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
-  index,
-  children,
-  ...restProps
-}) => {
+const EditableCell: React.FC<EditableCellProps> = ({ editing, dataIndex, title, inputType, children, ...restProps }) => {
   const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
 
   return (
@@ -95,7 +60,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
   )
 }
 
-const App: React.FC = () => {
+const ListV2: React.FC = () => {
   const router = useRouter()
   useEffect(() => {
     if (!commonState.isLogin) {
@@ -108,15 +73,14 @@ const App: React.FC = () => {
   const productV2State = useRecoilValue(productV2)
   const solutionState = useRecoilValue(solution)
   const permissionState = useRecoilValue(permission)
-  const { hasPermission } = usePermission(permissionState)
-
+  const { hasPermission } = usePermission()
   const [api, contextHolder] = notification.useNotification()
-
   const [sendLoading, setSendLoading] = useState(false)
   const [isModalTagOpen, setIsModalTagOpen] = useState(false)
   const [isModalCouponOpen, setIsModalCouponOpen] = useState(false)
   const [isModalOptionOpen, setIsModalOptionOpen] = useState(false)
   const [isModalSendOpen, setIsModalSendOpen] = useState(false)
+  const [isModalBatchOptionOpen, setIsModalBatchOptionOpen] = useState(false)
   const [optionInfoMutation, setOptionInfoMutation] = useState<OptionInfo>()
   const [selectedOptionParentKey, setSelectedOptionParentKey] = useState<string>('')
   const [batchEditTag, setBatchEditTag] = useState('')
@@ -164,7 +128,7 @@ const App: React.FC = () => {
   const [editingKey, setEditingKey] = useState('')
 
   const rowSelection = {
-    onChange: (selectedRowKeys: React.Key[], selectedRows: Item[]) => {
+    onChange: (_: React.Key[], selectedRows: Item[]) => {
       const updateData: Item[] = []
 
       for (const row of data) {
@@ -225,8 +189,17 @@ const App: React.FC = () => {
     {
       title: '상태',
       dataIndex: 'statusType',
-      width: 68,
-      render: (text: string) => <Badge status="success" text={text === 'SALE' ? '판매중' : text} />,
+      width: 76,
+      render: (text: string) => {
+        let status = text
+
+        if (text === 'SALE') {
+          status = '판매중'
+        } else if (text === 'SUSPENSION') {
+          status = '판매중지'
+        }
+        return <Badge status="success" text={status} />
+      },
     },
     {
       title: '등록일',
@@ -301,7 +274,12 @@ const App: React.FC = () => {
           return (
             <p className="flex gap-2">
               {data.optionCombinations.length}개 존재
-              <Button type="primary" size="small" onClick={() => showModalOption(data, record.key)}>
+              <Button
+                type="primary"
+                size="small"
+                disabled={!hasPermission('editOption')}
+                onClick={() => showModalOption(data, record.key)}
+              >
                 수정
               </Button>
             </p>
@@ -316,7 +294,7 @@ const App: React.FC = () => {
       dataIndex: 'operation',
       width: 100,
       fixed: 'right',
-      render: (_: any, record: Item) => {
+      render: (_: unknown, record: Item) => {
         const editable = isEditing(record)
         return editable ? (
           <span>
@@ -427,6 +405,14 @@ const App: React.FC = () => {
     setIsModalOptionOpen(false)
   }
 
+  const showModalBatchOption = () => {
+    setIsModalBatchOptionOpen(true)
+  }
+
+  const cancelModalBatchOption = () => {
+    setIsModalBatchOptionOpen(false)
+  }
+
   const handleOkSend = async () => {
     setSendLoading(true)
     const payload = {
@@ -454,7 +440,11 @@ const App: React.FC = () => {
     setSendLoading(false)
   }
 
-  return (
+  useEffect(() => {
+    setSendData(data)
+  }, [data])
+
+  return permissionState ? (
     <div className="flex flex-col gap-2">
       <Form form={form} component={false}>
         {contextHolder}
@@ -493,6 +483,9 @@ const App: React.FC = () => {
               </Button>
               <Button type="primary" size="small" onClick={showModalCoupon} disabled={true}>
                 반품배송비/교환배송비
+              </Button>
+              <Button type="primary" size="small" onClick={showModalBatchOption} disabled={!hasPermission('batchEditOption')}>
+                옵션
               </Button>
             </div>
           </div>
@@ -600,10 +593,18 @@ const App: React.FC = () => {
             optionInfo={optionInfoMutation as OptionInfo}
           />
         )}
+        <OptionBatchModificationModal
+          open={isModalBatchOptionOpen}
+          onCancel={cancelModalBatchOption}
+          items={data}
+          setItems={setData}
+        />
       </Form>
       {Object.keys(productErrors).length ? <ProductErrors productErrors={productErrors} /> : null}
     </div>
+  ) : (
+    <p>Loading</p>
   )
 }
 
-export default App
+export default ListV2
