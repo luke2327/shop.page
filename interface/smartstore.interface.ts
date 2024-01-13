@@ -301,3 +301,11 @@ export interface Item {
   }
   productOption?: OptionInfo
 }
+
+export type V2Data = {
+  result: {
+    token: string
+    message: 'SUCCESS'
+    list: V2List
+  }
+}
