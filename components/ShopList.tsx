@@ -23,6 +23,10 @@ const ShopList: React.FC = () => {
   const [prodCode, setProdCode] = useState('')
 
   const onSubmit = async () => {
+    if (prodCode === '') {
+      return
+    }
+
     const payload = {
       ...solutionState.shopInfo,
       prodCodeList: prodCode.split('\n').map((x) => x.trim()),
