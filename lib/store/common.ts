@@ -1,4 +1,4 @@
-import { Role, ShopInfo, UserInfo } from 'interface/auth.interface'
+import { Permissions, ShopInfo, UserInfo } from 'interface/auth.interface'
 import { atom, selector } from 'recoil'
 
 export const common = atom<{
@@ -66,7 +66,7 @@ export const permission = selector({
   get: ({ get }) => {
     const solutionState = get(solution)
 
-    return (solutionState.userInfo as UserInfo).role as Role
+    return (solutionState.userInfo as UserInfo).role as Permissions
   },
 })
 

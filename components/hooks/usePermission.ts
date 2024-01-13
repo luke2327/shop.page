@@ -1,17 +1,14 @@
-import { Role } from 'interface/auth.interface'
-import { useEffect, useState } from 'react'
+import { permission } from '@/lib/store/common'
+import { Permissions } from 'interface/auth.interface'
+import { useRecoilValue } from 'recoil'
 
-export function usePermission(role: Role) {
-  const [userRole, setUserRole] = useState<Role>()
-
-  useEffect(() => {
-    setUserRole(role)
-  }, [role])
+export function usePermission() {
+  const permissionState = useRecoilValue(permission)
 
   return {
-    hasPermission: (permission: keyof Role) => {
+    hasPermission: (permission: keyof Permissions) => {
       try {
-        return (userRole as Role)[permission]
+        return (permissionState as Permissions)[permission]
       } catch (e) {
         console.log('no role', e)
       }
