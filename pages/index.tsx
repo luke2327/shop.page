@@ -6,7 +6,7 @@ const Home = () => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Login</title>
+        <title>Minerva</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <LoginForm />

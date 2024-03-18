@@ -112,7 +112,7 @@ const LoginForm: React.FC = () => {
   }
 
   return (
-    <div className={styles.loginForm + ' flex flex-col'}>
+    <div className={styles.loginForm + ' flex flex-col bg-white/80 relative'}>
       <h1 className="pb-4 text-xl">Minerva Login</h1>
       <Form
         form={form}
